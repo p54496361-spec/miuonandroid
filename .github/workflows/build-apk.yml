@@ -1,42 +1,11 @@
-name: Build MIUON APK
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'Проект MIUON для Android.zip'
-      - '.github/workflows/build-apk.yml'
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download repository
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Unpack MIUON project
+- name: Unpack MIUON project
         run: |
           mkdir project
-          unzip -q "Проект MIUON для Android.zip" -d project
+          ZIP_FILE=$(find . -maxdepth 3 -type f -iname "*.zip" | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ZIP archive not found"
+            exit 1
+          fi
+          echo "Found: $ZIP_FILE"
+          unzip -q "$ZIP_FILE" -d project
           cp -R project/. .
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Build APK
-        run: gradle assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: MIUON-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
